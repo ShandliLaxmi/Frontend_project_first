@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hotel Booking Cancellation Risk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700&family=Public+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top"><div class="bar">
+  <div class="brand">Hotel Booking Cancellation Risk</div>
+  <nav role="tablist" aria-label="Sections">
+    <button role="tab" aria-selected="true" data-tab="predict">Predict</button>
+    <button role="tab" aria-selected="false" data-tab="analytics">Analytics</button>
+    <button role="tab" aria-selected="false" data-tab="model">Model results</button>
+  </nav>
+</div></header>
+
+<main>
+<!-- PREDICT -->
+<section id="predict" role="tabpanel">
+  <h1>Will this booking cancel?</h1>
+  <p class="lede">Enter the details of a reservation to see its cancellation probability and risk level.</p>
+  <div class="predict">
+    <form class="panel" id="form">
+      <fieldset><legend>Stay</legend><div class="grid">
+        <label>Hotel type<select id="hotel"><option>City Hotel</option><option>Resort Hotel</option></select></label>
+        <label>Arrival month<select id="month"></select></label>
+        <label>Lead time (days)<input id="lead" type="number" min="0" max="700" value="200"></label>
+        <label>Weekend nights<input id="wk" type="number" min="0" max="10" value="1"></label>
+        <label>Week nights<input id="wd" type="number" min="0" max="20" value="3"></label>
+        <label>Adults<input id="adults" type="number" min="1" max="6" value="2"></label>
+        <label>Children<input id="kids" type="number" min="0" max="5" value="0"></label>
+      </div></fieldset>
+      <fieldset><legend>Booking</legend><div class="grid">
+        <label>Market segment<select id="segment"><option>Online TA</option><option>Offline TA/TO</option><option>Groups</option><option>Direct</option><option>Corporate</option><option>Aviation</option><option>Complementary</option></select></label>
+        <label>Deposit type<select id="deposit"><option>No Deposit</option><option>Non Refund</option><option>Refundable</option></select></label>
+        <label>Customer type<select id="cust"><option>Transient</option><option>Transient-Party</option><option>Contract</option><option>Group</option></select></label>
+        <label>Average daily rate (€)<input id="adr" type="number" min="0" max="500" step="0.01" value="120"></label>
+      </div></fieldset>
+      <fieldset><legend>Guest history</legend><div class="grid">
+        <label>Previous cancellations<input id="prev" type="number" min="0" max="20" value="0"></label>
+        <label>Booking changes<input id="chg" type="number" min="0" max="20" value="0"></label>
+        <label>Special requests<input id="req" type="number" min="0" max="5" value="0"></label>
+      </div></fieldset>
+      <div class="actions">
+        <button class="btn" type="submit">Predict risk</button>
+        <button class="btn ghost" type="button" id="exA">Try a high-risk booking</button>
+        <button class="btn ghost" type="button" id="exB">Try a low-risk booking</button>
+      </div>
+    </form>
+
+    <aside class="panel result" id="result" data-level="High" aria-live="polite">
+      <div class="demo">Demo mode: this estimate comes from a rule-based stand-in shaped by patterns in the dataset. It will use the trained model once connected.</div>
+      <svg class="gauge" viewBox="0 0 200 112" role="img" aria-label="Cancellation probability gauge">
+        <path class="track" d="M20 100A80 80 0 0 1 180 100" pathLength="100"/>
+        <path class="val" id="arc" d="M20 100A80 80 0 0 1 180 100" pathLength="100" stroke-dasharray="0 100"/>
+        <line class="tick" x1="78.4" y1="33.4" x2="72.2" y2="14.4"/><line class="tick" x1="141.2" y1="43.4" x2="152.9" y2="27.2"/>
+        <text id="pct" x="100" y="94" text-anchor="middle">0%</text>
+      </svg>
+      <div class="verdict">
+        <span class="chip" id="level">High risk</span>
+        <p id="verdict"></p>
+      </div>
+      <p class="action" id="action"></p>
+      <h2 style="font-size:16px;margin-top:20px">What drives this estimate</h2>
+      <ul class="factors" id="factors"></ul>
+      <div class="legend"><span><i style="background:var(--low)"></i>Low 0–40%</span><span><i style="background:var(--mid)"></i>Medium 40–70%</span><span><i style="background:var(--high)"></i>High 70–100%</span></div>
+    </aside>
+  </div>
+</section>
+
+<!-- ANALYTICS -->
+<section id="analytics" role="tabpanel" hidden>
+  <h1>Booking analytics</h1>
+  <p class="lede">What 119,390 hotel bookings from 2015 to 2017 say about cancellations.</p>
+  <div class="panel kpis">
+    <div class="kpi"><b>119,390</b><span>Total bookings</span></div>
+    <div class="kpi"><b>37.0%</b><span>Cancellation rate</span></div>
+    <div class="kpi"><b>104 days</b><span>Average lead time</span></div>
+    <div class="kpi"><b>€101.83</b><span>Average daily rate</span></div>
+  </div>
+  <div class="charts">
+    <div class="panel chart wide"><h2>More than one in three bookings was cancelled</h2><p>Share of all bookings by outcome.</p>
+      <div class="stack"><div style="width:62.96%;background:var(--brand)">Kept 75,166</div><div style="width:37.04%;background:var(--high)">Cancelled 44,224</div></div></div>
+    <div class="panel chart"><h2>City hotel bookings cancel more often</h2><p>Cancellation rate by hotel type.</p><div id="c-hotel"></div></div>
+    <div class="panel chart"><h2>Almost every non-refundable booking was cancelled</h2><p>Cancellation rate by deposit type. This stands out in the data and is worth checking in preprocessing.</p><div id="c-dep"></div></div>
+    <div class="panel chart"><h2>The earlier the booking, the likelier the cancellation</h2><p>Cancellation rate by lead time (days between booking and arrival).</p><div id="c-lead"></div></div>
+    <div class="panel chart"><h2>Group bookings cancel the most</h2><p>Cancellation rate by market segment.</p><div id="c-seg"></div></div>
+    <div class="panel chart"><h2>Guests with special requests rarely cancel</h2><p>Cancellation rate by number of special requests.</p><div id="c-req"></div></div>
+    <div class="panel chart"><h2>Cancellations are highest from April to June</h2><p>Cancellation rate (%) by arrival month.</p><div class="cols" id="c-month"></div></div>
+  </div>
+</section>
+
+<!-- MODEL -->
+<section id="model" role="tabpanel" hidden>
+  <h1>Model results</h1>
+  <p class="lede">Logistic Regression and Random Forest are trained on the same split and scored on the same metrics.</p>
+  <div class="panel">
+    <h2>Metric comparison</h2>
+    <table class="tbl" style="margin-top:10px">
+      <thead><tr><th>Metric</th><th>Logistic Regression (baseline)</th><th>Random Forest</th></tr></thead>
+      <tbody id="metrics"></tbody>
+    </table>
+  </div>
+  <div class="panel" style="margin-top:20px"><h2>Pipeline</h2>
+    <ol class="steps"><li>Data cleaning</li><li>Exploratory analysis</li><li>Feature engineering</li><li>Categorical encoding</li><li>Train/test split</li><li>Model training</li><li>Evaluation and comparison</li><li>Risk classification</li><li>Dashboard</li></ol>
+  </div>
+  <div class="two" style="margin-top:20px">
+    <div class="panel"><h2>Confusion matrix</h2><div class="ph" style="margin-top:12px">Shown after training</div></div>
+    <div class="panel"><h2>ROC curve</h2><div class="ph" style="margin-top:12px">Shown after training</div></div>
+    <div class="panel wide"><h2>Feature importance</h2><div class="ph" style="margin-top:12px">Shown after training (Random Forest)</div></div>
+  </div>
+</section>
+</main>
+
+<script src="script.js"></script>
+</body>
+</html>
